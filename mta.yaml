@@ -1,0 +1,65 @@
+_schema-version: 3.3.0
+ID: fiori-advanced
+version: 1.0.0
+description: "A simple CAP project."
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+modules:
+  - name: fiori-advanced-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+    provides:
+      - name: srv-api # required by consumers of CAP services (e.g. approuter)
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: fiori-advanced-auth
+      - name: fiori-advanced-db
+
+  - name: fiori-advanced-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: fiori-advanced-db
+
+resources:
+  - name: fiori-advanced-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: fiori-advanced-${org}-${space}
+        tenant-mode: dedicated
+        role-collections:
+          - name: 'reviewer (fiori-advanced ${org}-${space})'
+            description: 'generated'
+            role-template-references:
+              - '$XSAPPNAME.reviewer'
+          - name: 'processor (fiori-advanced ${org}-${space})'
+            description: 'generated'
+            role-template-references:
+              - '$XSAPPNAME.processor'
+          - name: 'admin (fiori-advanced ${org}-${space})'
+            description: 'generated'
+            role-template-references:
+              - '$XSAPPNAME.admin'
+  - name: fiori-advanced-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
