@@ -22,7 +22,7 @@ type BookingData: {
 
 entity Travel : managed {
   key TravelUUID   : UUID;
-      TravelID     : Integer; //                    @readonly default 0 ;
+      TravelID     : Integer                     @readonly default 0 ;
       BeginDate    : Date;
       EndDate      : Date;
       BookingFee   : Decimal(16, 3);
