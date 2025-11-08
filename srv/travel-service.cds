@@ -64,6 +64,8 @@ function getBookingDataOfPassenger(CustomerID: String) returns my.BookingData;
   annotate my.MasterData with @cds.autoexpose @readonly;
 }
 
+annotate TravelService.Travel with @odata.draft.enabled;
+
 type Percentage : Integer @assert.range: [1,100];
 
 annotate TravelService.Travel with @Aggregation.ApplySupported: {
